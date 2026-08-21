@@ -4,6 +4,9 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 
+const authRoutes=require("./routes/authRoutes")
+
+
 const app = express();
 
 connectDB();
@@ -11,6 +14,9 @@ connectDB();
 //middleware
 app.use(cors());
 app.use(express.json());
+
+//routes
+app.use("/api/auth",authRoutes);
 
 //test routes
 app.get("/", (req, res) => {
