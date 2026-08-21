@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
-const jwt=require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 const registerUser = async (req, res) => {
   try {
     const {name, email, password} = req.body;
@@ -109,7 +109,26 @@ const loginUser = async (req, res) => {
   }
 };
 
+//get login user
+const getCurrentUser = async (req, res) => {
+  try {
+    return res.status(200).json({
+      success: true,
+      message: "User profile fetched successfully",
+      user: req.user,
+    });
+  } catch (error) {
+    console.error("Get current user error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
+  getCurrentUser
 };
