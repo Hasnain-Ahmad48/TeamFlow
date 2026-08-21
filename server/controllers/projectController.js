@@ -18,7 +18,7 @@ const createProject = async (req, res) => {
       description,
       status,
       owner: req.user._id,
-      member: [req.user._id],
+      members: [req.user._id],
     });
 
     return res.status(201).json({
@@ -44,6 +44,34 @@ const createProject = async (req, res) => {
   }
 };
 
+const getUserProjects = async (req, res) => {
+  try {
+
+console.log("Login user:",req.user._id)
+
+    const projects = await Project.find({
+      members: req.user._id,
+    })
+      .populate("owner", "name email")
+      .sort({createdAt: -1});
+
+      console.log("Project found:", projects)
+
+    return res.status(200).json({
+      success: true,
+      count: projects.length,
+      projects,
+    });
+  } catch (error) {
+    console.error("Get projects Error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "internal server error in getting user projects",
+    });
+  }
+};
+
 module.exports = {
   createProject,
+  getUserProjects,
 };
