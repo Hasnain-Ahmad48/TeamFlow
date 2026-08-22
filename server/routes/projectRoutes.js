@@ -8,5 +8,5 @@ const router = express.Router();
 //create project
 router.post("/", protect, createProject);
 router.get("/",protect, getUserProjects);
-router.get("/:id",protect,getProjectById)
+router.get("/:projectId",protect,getProjectById)
 module.exports = router;
