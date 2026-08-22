@@ -179,8 +179,113 @@ const getProjectById = async (req, res) => {
   }
 };
 
+//update project
+const updateProject = async (req, res) => {
+  try {
+    const {projectId} = req.params;
+    const {name, description, status} = req.body;
+
+    //find project
+    const project = await Project.findOne({projectId});
+
+    //check if project exist
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    //check if logg-in user is project owner
+    if (project.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Only project owner can update the project",
+      });
+    }
+
+    //update only provided field
+    if (name !== undefined) {
+      project.name = name;
+    }
+    if (description !== undefined) {
+      project.description = description;
+    }
+    if (status !== undefined) {
+      project.status = status;
+    }
+
+    //save updated project
+    const updateProject = await project.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Project update successfully",
+      project: updateProject,
+    });
+  } catch (error) {
+    console.error("update project error:", error.message);
+
+    if (error.name === "ValidationError") {
+      const message = Object.values(error.errors).map(err => err.message);
+
+      return res.status(400).json({
+        success: false,
+        message: [0],
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while updating project",
+    });
+  }
+};
+
+//deletproject
+const deleteProject = async (req, res) => {
+  try {
+    const {projectId} = req.params;
+
+    const project = await Project.findOne({projectId});
+
+    //check if project exist
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not Found",
+      });
+    }
+
+    //check if Loggin user is projext owner
+    if (project.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "only project owner can delete the project",
+      });
+    }
+
+    //delete project
+    await project.deleteOne();
+
+    return res.status(200).json({
+      success: false,
+      message: "Project delete successfully",
+    });
+  } catch (error) {
+    console.log("Delete project error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while deleting project",
+    });
+  }
+};
+
 module.exports = {
   createProject,
   getUserProjects,
   getProjectById,
+  updateProject,
+  deleteProject,
 };
