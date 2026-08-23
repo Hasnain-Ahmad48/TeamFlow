@@ -112,10 +112,18 @@ const getProjectMembers = async (req, res) => {
       });
     }
 
+    //isOwner check and return in every member
+    const members = project.members.map(member => ({
+      _id: member._id,
+      name: member.name,
+      email: member.email,
+      isOwner: member._id.toString() === project.owner.toString(),
+    }));
+
     return res.status(200).json({
       success: true,
       count: project.members.length,
-      members: project.members,
+      members,
     });
   } catch (error) {
     console.error("Get project member error:", error.message);
