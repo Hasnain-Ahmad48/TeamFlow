@@ -1,0 +1,133 @@
+const Project = require("../models/Project");
+const User = require("../models/User");
+
+//add project member
+const addProjectMember = async (req, res) => {
+  try {
+    const {projectId} = req.params;
+    const {email} = req.body;
+
+    //validate email
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Member email is required",
+      });
+    }
+    //finf project
+    const project = await Project.findOne({projectId});
+
+    //check if project exist
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    //check if login user is project member
+    if (project.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Only project owner can add members",
+      });
+    }
+
+    //finf user by email
+    const user = await User.findOne({email});
+
+    //check if user exist
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    //check if user is already project member
+    const isMember = project.members.some(
+      member => member.toString() === user._id.toString(),
+    );
+
+    if (isMember) {
+      return res.status(400).json({
+        success: false,
+        message: "User is already a project member",
+      });
+    }
+
+    //add user to project member
+    project.members.push(user._id);
+
+    //save project
+    await project.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Member added successfully",
+      member: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("Added project member error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      messsage: "internal server Error while adding project member",
+    });
+  }
+};
+
+//get project member
+const getProjectMembers = async (req, res) => {
+  try {
+    const {projectId} = req.params;
+
+    //find project and populate memmber
+    const project = await Project.findOne({projectId}).populate(
+      "members",
+      "name email",
+    );
+
+    //check if project exist
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    //check if loggin user is member
+    const isMember = project.members.some(
+      member => member._id.toString() === req.user._id.toString(),
+    );
+
+    if (!isMember) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to access project mmebers",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      count: project.members.length,
+      members: project.members,
+    });
+  } catch (error) {
+    console.error("Get project member error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while getting project members",
+    });
+  }
+};
+
+module.exports = {
+  addProjectMember,
+  getProjectMembers,
+};
