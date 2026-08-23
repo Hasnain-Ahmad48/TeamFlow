@@ -135,7 +135,78 @@ const getProjectMembers = async (req, res) => {
   }
 };
 
+//remove project member
+const removeProjectMember = async (req, res) => {
+  try {
+    const {projectId, userId} = req.params;
+
+    //find project
+    const project = await Project.findOne({projectId});
+
+    //check if project exist
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    //chenck if logg in user is project member
+    if (project.owner.toString() !== req.user._id.toString()) {
+      return (
+        res.status(403) /
+        json({
+          success: false,
+          message: "ONly project owner can remove members",
+        })
+      );
+    }
+
+    //check if project owner is trying to remove themselve
+    if (project.owner.toString() === userId) {
+      return res.status(400).json({
+        success: false,
+        message: "Project owner can not be remove",
+      });
+    }
+
+    //check if user is project mmeber
+    const isMember = project.members.some(
+      member => member.toString() === userId,
+    );
+
+    if (!isMember) {
+      return res.status(404).json({
+        success: false,
+        message: "User is not member of the project",
+      });
+    }
+
+    //remove member from project
+    project.members = project.members.filter(
+      member => member.toString() !== userId,
+    );
+
+    //save udpate project
+    await project.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Project member removed successfully",
+      removedUserId: userId,
+    });
+  } catch (error) {
+    console.error("Removed member from project error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while removing project member",
+    });
+  }
+};
+
 module.exports = {
   addProjectMember,
   getProjectMembers,
+  removeProjectMember,
 };

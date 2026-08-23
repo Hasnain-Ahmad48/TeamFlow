@@ -10,6 +10,7 @@ const {
 const {
   addProjectMember,
   getProjectMembers,
+  removeProjectMember,
 } = require("../controllers/projectMemberController");
 const protect = require("../middleware/authMiddleware");
 
@@ -25,4 +26,5 @@ router.delete("/:projectId", protect, deleteProject);
 //member routes
 router.post("/:projectId/members", protect, addProjectMember);
 router.get("/:projectId/members", protect, getProjectMembers);
+router.delete("/:projectId/members/:userId", protect, removeProjectMember);
 module.exports = router;
