@@ -1,5 +1,5 @@
 const Task = require("../models/Task");
-// const Project = require("../models/Project");
+const Project = require("../models/Project");
 
 const {
   getProjectByProjectId,
@@ -243,10 +243,7 @@ const getTaskById = async (req, res) => {
     }
 
     //check if loggin user is project member
-    const isMember = isProjectMember(
-      task.project,
-      req.user._id
-    )
+    const isMember = isProjectMember(task.project, req.user._id);
 
     if (!isMember) {
       return res.status(403).json({
@@ -269,8 +266,114 @@ const getTaskById = async (req, res) => {
   }
 };
 
+//update task
+const updateTask = async (req, res) => {
+  try {
+    const {taskId} = req.params;
+
+    const {title, description, priority, dueDate, assignedTo} = req.body;
+
+    //find task
+    const task = await Task.findOne({taskId});
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
+    }
+
+    //find project related to task
+    const project = await Project.findById(task.project);
+
+    //check if project exist
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    //cjheck if login user is project owner
+    const isOwner = project.owner.toString() === req.user._id.toString();
+
+    //check if loggin user creatd the task
+    const isTaskCreater =
+      task.assignedBy.toString() === req.user._id.toString();
+
+    //only project owner and task creater can update task
+    if (!isOwner && !isTaskCreater) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to update this task",
+      });
+    }
+
+    //if assignedTo is provided check project membership
+    if (assignedTo !== undefined && assignedTo !== null) {
+      const isAssignedUserMember = isProjectMember(project, assignedTo);
+
+      if (!isAssignedUserMember) {
+        return res.status(400).json({
+          success: false,
+          message: "Assigned user is not member of this project",
+        });
+      }
+      task.assignedTo = assignedTo;
+    }
+
+    //allow task to be unassinged
+    if (assignedTo === null) {
+      task.assignedTo = null;
+    }
+
+    //update only provided field
+    if (title !== undefined) {
+      task.title = title;
+    }
+
+    if (description !== undefined) {
+      task.description = description;
+    }
+
+    if (priority !== undefined) {
+      task.priority = priority;
+    }
+
+    if (dueDate !== undefined) {
+      task.dueDate = dueDate;
+    }
+
+    //save task
+    const updatedTask = await task.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Task updated  successfully",
+      task: updatedTask,
+    });
+  } catch (error) {
+    console.error("Update task error:", error.message);
+
+    if (error.name === "ValidationError") {
+      const message = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: message[0],
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while updating task",
+    });
+  }
+};
+
 module.exports = {
+  isProjectMember,
   createTask,
   getProjectTasks,
   getTaskById,
+  updateTask
 };
