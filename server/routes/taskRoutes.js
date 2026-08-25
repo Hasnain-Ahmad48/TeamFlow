@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const {createTask, getProjectTasks,getTaskById,updateTask,deleteTask,updateTaskStatus} = require("../controllers/taskController");
+const {createTask, getProjectTasks,getTaskById,updateTask,deleteTask,updateTaskStatus,getMyAssignedTask} = require("../controllers/taskController");
 
 const protect = require("../middleware/authMiddleware");
 
@@ -10,6 +10,9 @@ router.post("/", protect, createTask);
 
 //get all task of project
 router.get("/project/:projectId", protect, getProjectTasks);
+
+//get my assigned task
+router.get("/my-tasks",protect,getMyAssignedTask)
 
 //get single task by ID
 router.get("/:taskId",protect,getTaskById)

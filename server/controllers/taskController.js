@@ -179,6 +179,9 @@ const getProjectTasks = async (req, res) => {
   try {
     const {projectId} = req.params;
 
+    //adding filtring
+    const {status, priority, assignedTo, sort} = req.query;
+
     //find project by ID
     const project = await getProjectByProjectId(projectId);
 
@@ -200,13 +203,42 @@ const getProjectTasks = async (req, res) => {
       });
     }
 
-    //get all task belong to project
-    const tasks = await Task.find({
+    //Base filter
+    const filter = {
       project: project._id,
-    })
+    };
+
+    //filter by status
+    if (status) {
+      filter.status = status;
+    }
+
+    //flter priority
+    if (priority) {
+      filter.priority = priority;
+    }
+
+    //filter by assigned user
+    if (assignedTo) {
+      filter.assignedTo = assignedTo;
+    }
+
+    //build task query
+
+    let taskQuery = Task.find(filter)
       .populate("assignedTo", "name email")
-      .populate("assignedBy", "name email")
-      .sort({createdAt: -1});
+      .populate("assignedBy", "name email");
+
+    //applying sorting
+    if (sort) {
+      taskQuery = taskQuery.sort(sort);
+    } else {
+      //default new task first
+      taskQuery = taskQuery.sort({createdAt: -1});
+    }
+
+    //get all task belong to project
+    const tasks = await taskQuery;
 
     return res.status(200).json({
       success: true,
@@ -509,6 +541,29 @@ const updateTaskStatus = async (req, res) => {
   }
 };
 
+//get task assigned to loggin user
+const getMyAssignedTask = async (req, res) => {
+  try {
+    const tasks = await Task.find({assignedTo: req.user._id})
+      .populate("project", "projectId name")
+      .populate("assignedBy", "name email")
+      .sort({createdAt: -1});
+
+    return res.status(200).json({
+      success: true,
+      count: tasks.length,
+      tasks,
+    });
+  } catch (error) {
+    console.error("Get my assigned task error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while getting assigned task",
+    });
+  }
+};
+
 module.exports = {
   isProjectMember,
   createTask,
@@ -516,5 +571,6 @@ module.exports = {
   getTaskById,
   updateTask,
   deleteTask,
-  updateTaskStatus
+  updateTaskStatus,
+  getMyAssignedTask,
 };
