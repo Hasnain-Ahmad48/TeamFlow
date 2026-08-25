@@ -370,10 +370,151 @@ const updateTask = async (req, res) => {
   }
 };
 
+//delete task
+const deleteTask = async (req, res) => {
+  try {
+    const {taskId} = req.params;
+
+    //find task
+    const task = await Task.findOne({taskId});
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
+    }
+
+    //finf project related to task
+    const project = await Project.findById(task.project);
+
+    if (!project) {
+      return res.status(404).json({
+        success: fasle,
+        message: "Project not found",
+      });
+    }
+
+    //check if login user is project member
+    const isOwner = project.owner.toString() === req.user._id.toString();
+
+    //ceck if login user created task
+    const isTaskCreator =
+      task.assignedBy.toString() === req.user._id.toString();
+
+    //only project owner and task creator can delete the task
+    if (!isOwner && !isTaskCreator) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorizez to delete this task",
+      });
+    }
+
+    //delete task
+    await Task.findByIdAndDelete(task._id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Task deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete task error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while deleting the task",
+    });
+  }
+};
+
+//update task staus
+const updateTaskStatus = async (req, res) => {
+  try {
+    const {taskId} = req.params;
+    const {status} = req.body;
+
+    //check if status is provided
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: "TAsk status is required",
+      });
+    }
+
+    //find task
+    const task = await Task.findOne({taskId});
+
+    //check if task exist
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        success: "Task not found",
+      });
+    }
+
+    //find project related to task
+    const project = await Project.findById(task.project);
+
+    //check if project exist
+    if (!project) {
+      return res.status(403).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    //check if loggin user is project owner
+    const isOwner = project.owner.toString() === req.user._id.toString();
+
+    //check if loggin user craeted the task
+    const isTaskCreator =
+      task.assignedBy.toString() === req.user._id.toString();
+
+    //check if loggin user is assigned to this task
+    const isAssignedUser =
+      task.assignedTo && task.assignedTo.toString() === req.user._id.toString();
+
+    if (!isOwner && !isTaskCreator && !isAssignedUser) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authrized to update this task status",
+      });
+    }
+
+    //update task
+    task.status = status;
+
+    const updatedTask = await task.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Task status updated successfully",
+      task: updatedTask,
+    });
+  } catch (error) {
+    console.error("Update task status error:", error.message);
+
+    if (error.name === "ValidationError") {
+      const message = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: message[0],
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while updating task status",
+    });
+  }
+};
+
 module.exports = {
   isProjectMember,
   createTask,
   getProjectTasks,
   getTaskById,
-  updateTask
+  updateTask,
+  deleteTask,
+  updateTaskStatus
 };
