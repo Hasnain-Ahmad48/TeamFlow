@@ -180,7 +180,27 @@ const getProjectTasks = async (req, res) => {
     const {projectId} = req.params;
 
     //adding filtring
-    const {status, priority, assignedTo, sort} = req.query;
+    const {
+      status,
+      priority,
+      assignedTo,
+      search,
+      sort,
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    //convert page and  limit to number
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    //validate pagination
+    if (pageNumber < 1 || limitNumber < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "PAge and limit must be greater  then 0",
+      });
+    }
 
     //find project by ID
     const project = await getProjectByProjectId(projectId);
@@ -223,11 +243,28 @@ const getProjectTasks = async (req, res) => {
       filter.assignedTo = assignedTo;
     }
 
-    //build task query
+    //search by title
+    if (search) {
+      filter.title = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+    //count total task after appyling filter
+    const totalTasks = await Task.countDocuments(filter);
 
+    //calculate total pages
+    const totalPages = Math.ceil(totalTasks / limitNumber);
+
+    //calculate how many task to skip
+    const skip = (pageNumber - 1) * limitNumber;
+
+    //build task query
     let taskQuery = Task.find(filter)
       .populate("assignedTo", "name email")
-      .populate("assignedBy", "name email");
+      .populate("assignedBy", "name email")
+      .skip(skip)
+      .limit(limitNumber);
 
     //applying sorting
     if (sort) {
@@ -243,6 +280,9 @@ const getProjectTasks = async (req, res) => {
     return res.status(200).json({
       success: true,
       count: tasks.length,
+      totalTasks,
+      totalPages,
+      currentPage: pageNumber,
       tasks,
     });
   } catch (error) {
