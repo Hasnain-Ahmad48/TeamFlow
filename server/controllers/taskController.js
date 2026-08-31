@@ -34,8 +34,6 @@ const createTask = async (req, res) => {
       });
     }
 
- 
-
     //code after  utils
     const project = await getProjectByProjectId(projectId);
 
@@ -274,7 +272,7 @@ const getTaskById = async (req, res) => {
     if (!task) {
       return res.status(404).json({
         success: false,
-        message: "Task not found",
+        message: "No task exists",
       });
     }
 
@@ -321,7 +319,7 @@ const updateTask = async (req, res) => {
     if (!task) {
       return res.status(404).json({
         success: false,
-        message: "Task not found",
+        message: "No task exists",
       });
     }
 
@@ -423,7 +421,7 @@ const deleteTask = async (req, res) => {
     if (!task) {
       return res.status(404).json({
         success: false,
-        message: "Task not found",
+        message: "No task exists",
       });
     }
 
@@ -490,7 +488,7 @@ const updateTaskStatus = async (req, res) => {
     if (!task) {
       return res.status(404).json({
         success: false,
-        success: "Task not found",
+        success: "No task exists",
       });
     }
 
@@ -519,7 +517,7 @@ const updateTaskStatus = async (req, res) => {
     if (!isOwner && !isTaskCreator && !isAssignedUser) {
       return res.status(403).json({
         success: false,
-        message: "You are not authrized to update this task status",
+        message: "Unauthorized access",
       });
     }
 
