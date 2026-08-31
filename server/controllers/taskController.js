@@ -1,6 +1,6 @@
 const Task = require("../models/Task");
 const Project = require("../models/Project");
-
+const {isTaskOverdue} = require("../utils/taskStatus");
 const {
   getProjectByProjectId,
   isProjectMember,
@@ -34,28 +34,7 @@ const createTask = async (req, res) => {
       });
     }
 
-    //find project using rproject id
-    // const project = await Project.findOne({projectId});
-
-    // //check if project exist
-    // if (!project) {
-    //   return res.status(404).json({
-    //     success: false,
-    //     message: "Project not found",
-    //   });
-    // }
-
-    // //check if loggin user is project member
-    // const isMember = project.members.some(
-    //   member => member.toString() === req.user._id.toString(),
-    // );
-
-    // if (!isMember) {
-    //   return res.status(403).json({
-    //     success: false,
-    //     message: "You are not authorizedd to create task in this project",
-    //   });
-    // }
+ 
 
     //code after  utils
     const project = await getProjectByProjectId(projectId);
@@ -90,21 +69,6 @@ const createTask = async (req, res) => {
       }
     }
 
-    //find last task to generate nest task id
-    // const lastTask = await Task.findOne()
-    //   .sort({createdAt: -1})
-    //   .select("taskId");
-
-    // let nextNumber = 1001;
-
-    // if (lastTask && lastTask.taskId) {
-    //   const lastNumber = parseInt(lastTask.taskId.split("-")[1], 10);
-    //   nextNumber = lastNumber + 1;
-    // }
-
-    // const taskId = `TASK-${nextNumber}`;
-
-    // Get the highest task number
     const lastTask = await Task.aggregate([
       {
         $match: {
@@ -324,9 +288,15 @@ const getTaskById = async (req, res) => {
       });
     }
 
+    //check if task is over Due or not
+    const taskWithOverdueStatus = {
+      ...task.toObject(),
+      isOverdue: isTaskOverdue(task),
+    };
+
     return res.status(200).json({
       success: true,
-      task,
+      task: taskWithOverdueStatus,
     });
   } catch (error) {
     console.error("Get task error:", error.message);
@@ -589,10 +559,16 @@ const getMyAssignedTask = async (req, res) => {
       .populate("assignedBy", "name email")
       .sort({createdAt: -1});
 
+    //check if task is over due or not
+    const taskWithOverdueStatus = tasks.map(task => ({
+      ...task.toObject(),
+      isOverdue: isTaskOverdue(task),
+    }));
+
     return res.status(200).json({
       success: true,
-      count: tasks.length,
-      tasks,
+      count: taskWithOverdueStatus.length,
+      tasks: taskWithOverdueStatus,
     });
   } catch (error) {
     console.error("Get my assigned task error:", error.message);

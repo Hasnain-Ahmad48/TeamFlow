@@ -85,56 +85,6 @@ const getUserProjects = async (req, res) => {
   }
 };
 
-//get single project by id
-// const getProjectById = async (req, res) => {
-//   try {
-//     const {id} = req.params;
-
-//     //validate mongoDB object
-//     if (!mongoose.Types.ObjectId.isValid(id)) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Invalid Project ID",
-//       });
-//     }
-
-//     //find project
-//     const project = await Project.findById(id)
-//       .populate("owner", "name email")
-//       .populate("members", "name email");
-
-//     //check if project exist
-//     if (!project) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Project not Found",
-//       });
-//     }
-//     //check if logged in user is project member
-//     const isMember = project.members.some(
-//       member => member._id.toString() === req.user._id.toString(),
-//     );
-
-//     if (!isMember) {
-//       return res.status(403).json({
-//         success: false,
-//         message: "You are not authorized to access this project",
-//       });
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       project,
-//     });
-//   } catch (error) {
-//     console.error("get Project Error:", error.message);
-
-//     return res.status(500).json({
-//       success: false,
-//       message: "Internal server while getting project",
-//     });
-//   }
-// };
 
 const getProjectById = async (req, res) => {
   try {
