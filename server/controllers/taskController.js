@@ -160,7 +160,7 @@ const getProjectTasks = async (req, res) => {
     if (pageNumber < 1 || limitNumber < 1) {
       return res.status(400).json({
         success: false,
-        message: "PAge and limit must be greater  then 0",
+        message: "Page and limit must be greater  then 0",
       });
     }
 
@@ -181,7 +181,7 @@ const getProjectTasks = async (req, res) => {
     if (!isMember) {
       return res.status(403).json({
         success: false,
-        message: "you are not authorized to access tasks of this project",
+        message: "You are not authorized to access tasks of this project",
       });
     }
 
@@ -239,13 +239,19 @@ const getProjectTasks = async (req, res) => {
     //get all task belong to project
     const tasks = await taskQuery;
 
+    //task with over due status
+    const tasksWithOverdueStatus = tasks.map(task => ({
+      ...task.toObject(),
+      isOverdue: isTaskOverdue(task),
+    }));
+
     return res.status(200).json({
       success: true,
-      count: tasks.length,
+      count: tasksWithOverdueStatus.length,
       totalTasks,
       totalPages,
       currentPage: pageNumber,
-      tasks,
+      tasks: tasksWithOverdueStatus,
     });
   } catch (error) {
     console.error("Get project task error:", error.message);
@@ -327,7 +333,7 @@ const updateTask = async (req, res) => {
     const project = await Project.findById(task.project);
 
     //check if project exist
-    if (!task) {
+    if (!project) {
       return res.status(404).json({
         success: false,
         message: "Project not found",
@@ -389,7 +395,7 @@ const updateTask = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Task updated  successfully",
+      message: "Task updated successfully",
       task: updatedTask,
     });
   } catch (error) {
@@ -430,7 +436,7 @@ const deleteTask = async (req, res) => {
 
     if (!project) {
       return res.status(404).json({
-        success: fasle,
+        success: false,
         message: "Project not found",
       });
     }
@@ -477,7 +483,7 @@ const updateTaskStatus = async (req, res) => {
     if (!status) {
       return res.status(400).json({
         success: false,
-        message: "TAsk status is required",
+        message: "Task status is required",
       });
     }
 
@@ -488,7 +494,7 @@ const updateTaskStatus = async (req, res) => {
     if (!task) {
       return res.status(404).json({
         success: false,
-        success: "No task exists",
+        message: "No task exists",
       });
     }
 
@@ -497,7 +503,7 @@ const updateTaskStatus = async (req, res) => {
 
     //check if project exist
     if (!project) {
-      return res.status(403).json({
+      return res.status(404).json({
         success: false,
         message: "Project not found",
       });
@@ -558,15 +564,15 @@ const getMyAssignedTask = async (req, res) => {
       .sort({createdAt: -1});
 
     //check if task is over due or not
-    const taskWithOverdueStatus = tasks.map(task => ({
+    const tasksWithOverdueStatus = tasks.map(task => ({
       ...task.toObject(),
       isOverdue: isTaskOverdue(task),
     }));
 
     return res.status(200).json({
       success: true,
-      count: taskWithOverdueStatus.length,
-      tasks: taskWithOverdueStatus,
+      count: tasksWithOverdueStatus.length,
+      tasks: tasksWithOverdueStatus,
     });
   } catch (error) {
     console.error("Get my assigned task error:", error.message);

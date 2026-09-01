@@ -25,7 +25,7 @@ const addProjectMember = async (req, res) => {
       });
     }
 
-    //check if login user is project member
+    //check if login user is project owner
     if (project.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
@@ -76,7 +76,7 @@ const addProjectMember = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      messsage: "internal server Error while adding project member",
+      messsage: "Internal server Error while adding project member",
     });
   }
 };
@@ -153,20 +153,17 @@ const removeProjectMember = async (req, res) => {
 
     //chenck if logg in user is project member
     if (project.owner.toString() !== req.user._id.toString()) {
-      return (
-        res.status(403) /
-        json({
-          success: false,
-          message: "ONly project owner can remove members",
-        })
-      );
+      return res.status(403).json({
+        success: false,
+        message: "Only project owner can remove members",
+      });
     }
 
     //check if project owner is trying to remove themselve
     if (project.owner.toString() === userId) {
       return res.status(400).json({
         success: false,
-        message: "Project owner can not be remove",
+        message: "Project owner cannot be removed",
       });
     }
 

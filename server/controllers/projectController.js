@@ -9,7 +9,7 @@ const createProject = async (req, res) => {
     if (!name) {
       return res.status(400).json({
         success: false,
-        message: "project name is required",
+        message: "Project name is required",
       });
     }
 
@@ -54,14 +54,13 @@ const createProject = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "internal server error",
+      message: "Internal server error",
     });
   }
 };
 
 const getUserProjects = async (req, res) => {
   try {
-    console.log("Login user:", req.user._id);
 
     const projects = await Project.find({
       members: req.user._id,
@@ -69,8 +68,7 @@ const getUserProjects = async (req, res) => {
       .populate("owner", "name email")
       .sort({createdAt: -1});
 
-    console.log("Project found:", projects);
-
+    
     return res.status(200).json({
       success: true,
       count: projects.length,
@@ -80,7 +78,7 @@ const getUserProjects = async (req, res) => {
     console.error("Get projects Error:", error.message);
     return res.status(500).json({
       success: false,
-      message: "internal server error in getting user projects",
+      message: "Internal server error in getting user projects",
     });
   }
 };
@@ -181,7 +179,7 @@ const updateProject = async (req, res) => {
 
       return res.status(400).json({
         success: false,
-        message: [0],
+        message: message[0],
       });
     }
 
@@ -220,7 +218,7 @@ const deleteProject = async (req, res) => {
 
     return res.status(200).json({
       success: false,
-      message: "Project delete successfully",
+      message: "Project deleted successfully",
     });
   } catch (error) {
     console.log("Delete project error:", error.message);
