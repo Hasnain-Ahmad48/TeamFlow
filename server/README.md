@@ -605,3 +605,342 @@ Removes a user from a project.
 | `userId`    | ID of the user to remove          |
 
 **Request Body:** None
+
+# Project Member APIs
+
+## 9. Add Project Member
+
+Adds an existing user to a project using their email address.
+
+**Method:** `POST`
+
+**Endpoint:**
+
+```text
+/api/projects/:projectId/members
+```
+
+**Authorization:** Required — Bearer Token
+
+**Permission:** Only the project owner can add members.
+
+**Path Parameter:**
+
+| Parameter   | Description                       |
+| ----------- | --------------------------------- |
+| `projectId` | Unique project ID, e.g. `TF-1001` |
+
+**Request Body:**
+
+```json
+{
+  "email": "member@example.com"
+}
+```
+
+---
+
+## 10. Get Project Members
+
+Retrieves all members of a project.
+
+**Method:** `GET`
+
+**Endpoint:**
+
+```text
+/api/projects/:projectId/members
+```
+
+**Authorization:** Required — Bearer Token
+
+**Permission:** The authenticated user must be a member of the project.
+
+**Path Parameter:**
+
+| Parameter   | Description                       |
+| ----------- | --------------------------------- |
+| `projectId` | Unique project ID, e.g. `TF-1001` |
+
+**Request Body:** None
+
+---
+
+## 11. Remove Project Member
+
+Removes a member from a project.
+
+**Method:** `DELETE`
+
+**Endpoint:**
+
+```text
+/api/projects/:projectId/members/:userId
+```
+
+**Authorization:** Required — Bearer Token
+
+**Permission:** Only the project owner can remove members. The project owner cannot remove themselves.
+
+**Path Parameters:**
+
+| Parameter   | Description                       |
+| ----------- | --------------------------------- |
+| `projectId` | Unique project ID, e.g. `TF-1001` |
+| `userId`    | MongoDB ID of the user to remove  |
+
+**Request Body:** None
+
+
+# Task APIs
+
+## 12. Create Task
+
+Creates a new task inside a project.
+
+**Method:** `POST`
+
+**Endpoint:**
+
+```text
+/api/tasks
+```
+
+**Authorization:** Required — Bearer Token
+
+**Permission:** The authenticated user must be a member of the project.
+
+**Request Body:**
+
+```json
+{
+  "title": "Design Login Page",
+  "description": "Create the UI design for the login page",
+  "projectId": "TF-1001",
+  "assignedTo": "USER_MONGODB_ID",
+  "priority": "high",
+  "dueDate": "2026-09-15"
+}
+```
+
+**Required Fields:**
+
+* `title`
+* `projectId`
+* `dueDate`
+
+**Optional Fields:**
+
+* `description`
+* `assignedTo`
+* `priority`
+
+If `assignedTo` is provided, the user must be a member of the project.
+
+---
+
+## 13. Get Project Tasks
+
+Retrieves tasks belonging to a specific project.
+
+**Method:** `GET`
+
+**Endpoint:**
+
+```text
+/api/tasks/project/:projectId
+```
+
+**Authorization:** Required — Bearer Token
+
+**Permission:** The authenticated user must be a member of the project.
+
+**Path Parameter:**
+
+| Parameter   | Description                       |
+| ----------- | --------------------------------- |
+| `projectId` | Unique project ID, e.g. `TF-1001` |
+
+**Query Parameters:**
+
+| Parameter    | Description                               |
+| ------------ | ----------------------------------------- |
+| `status`     | Filter tasks by status                    |
+| `priority`   | Filter tasks by priority                  |
+| `assignedTo` | Filter tasks by assigned user             |
+| `search`     | Search tasks by title                     |
+| `sort`       | Sort task results                         |
+| `page`       | Page number, default is `1`               |
+| `limit`      | Number of tasks per page, default is `10` |
+
+**Example:**
+
+```text
+/api/tasks/project/TF-1001?status=in-progress&priority=high&page=1&limit=10
+```
+
+**Request Body:** None
+
+---
+
+## 14. Get My Assigned Tasks
+
+Retrieves all tasks assigned to the authenticated user.
+
+**Method:** `GET`
+
+**Endpoint:**
+
+```text
+/api/tasks/my-tasks
+```
+
+**Authorization:** Required — Bearer Token
+
+**Request Body:** None
+
+---
+
+## 15. Get Task By ID
+
+Retrieves a specific task using its task ID.
+
+**Method:** `GET`
+
+**Endpoint:**
+
+```text
+/api/tasks/:taskId
+```
+
+**Authorization:** Required — Bearer Token
+
+**Permission:** The authenticated user must be a member of the project associated with the task.
+
+**Path Parameter:**
+
+| Parameter | Description                      |
+| --------- | -------------------------------- |
+| `taskId`  | Unique task ID, e.g. `TASK-1001` |
+
+**Request Body:** None
+
+---
+
+## 16. Update Task Status
+
+Updates the status of an existing task.
+
+**Method:** `PATCH`
+
+**Endpoint:**
+
+```text
+/api/tasks/:taskId/status
+```
+
+**Authorization:** Required — Bearer Token
+
+**Permission:** The task can be updated by:
+
+* Project owner
+* Task creator
+* User assigned to the task
+
+**Path Parameter:**
+
+| Parameter | Description                      |
+| --------- | -------------------------------- |
+| `taskId`  | Unique task ID, e.g. `TASK-1001` |
+
+**Request Body:**
+
+```json
+{
+  "status": "in-progress"
+}
+```
+
+**Required Field:**
+
+* `status`
+
+---
+
+## 17. Update Task
+
+Updates one or more fields of an existing task.
+
+**Method:** `PATCH`
+
+**Endpoint:**
+
+```text
+/api/tasks/:taskId
+```
+
+**Authorization:** Required — Bearer Token
+
+**Permission:** Only the project owner or task creator can update the task.
+
+**Path Parameter:**
+
+| Parameter | Description                      |
+| --------- | -------------------------------- |
+| `taskId`  | Unique task ID, e.g. `TASK-1001` |
+
+**Request Body:**
+
+```json
+{
+  "title": "Updated Task Title",
+  "description": "Updated task description",
+  "priority": "medium",
+  "dueDate": "2026-09-20",
+  "assignedTo": "USER_MONGODB_ID"
+}
+```
+
+**Optional Fields:**
+
+* `title`
+* `description`
+* `priority`
+* `dueDate`
+* `assignedTo`
+
+To unassign a task, set `assignedTo` to `null`:
+
+```json
+{
+  "assignedTo": null
+}
+```
+
+If `assignedTo` is provided, the user must be a member of the project.
+
+---
+
+## 18. Delete Task
+
+Deletes an existing task.
+
+**Method:** `DELETE`
+
+**Endpoint:**
+
+```text
+/api/tasks/:taskId
+```
+
+**Authorization:** Required — Bearer Token
+
+**Permission:** Only the project owner or task creator can delete the task.
+
+**Path Parameter:**
+
+| Parameter | Description                      |
+| --------- | -------------------------------- |
+| `taskId`  | Unique task ID, e.g. `TASK-1001` |
+
+**Request Body:** None
