@@ -39,7 +39,7 @@ const getDashboardStatistics = async (req, res) => {
     });
 
     const myAssignedTasks = await Task.countDocuments({
-      assignrdTo: req.user._id,
+      assignedTo: req.user._id,
     });
 
     return res.status(200).json({
