@@ -8,6 +8,12 @@
 http://localhost:5000/api
 ```
 
+### The TeamFlow API is deployed on Render.
+
+Production API:
+
+https://teamflow-wkuw.onrender.com/api
+
 ### Authentication
 
 Protected endpoints require a valid JWT token.
