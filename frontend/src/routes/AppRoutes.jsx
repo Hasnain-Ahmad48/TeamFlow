@@ -1,4 +1,9 @@
-import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+} from "react-router-dom";
 
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
@@ -7,6 +12,8 @@ import Projects from "../pages/Projects";
 import ProjectDetails from "../pages/ProjectDetails";
 import MyTasks from "../pages/MyTasks";
 
+import ProtectedRoute from "./ProtectedRoute";
+
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -14,13 +21,15 @@ const AppRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/projects" element={<Projects />} />
-        <Route
-          path="/projects/:projectId"
-          element={<ProjectDetails />}
-        />
-        <Route path="/my-tasks" element={<MyTasks />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route
+            path="/projects/:projectId"
+            element={<ProjectDetails />}
+          />
+          <Route path="/my-tasks" element={<MyTasks />} />
+        </Route>
 
         <Route
           path="/"
