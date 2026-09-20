@@ -190,6 +190,7 @@ const Projects = () => {
         {!error && projects.length > 0 && (
           <section className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {projects.map(project => {
+              console.log("PROJECT FROM API:", project);
               const status = getStatusStyle(project.status);
 
               const assignedBy =
@@ -202,8 +203,8 @@ const Projects = () => {
 
               return (
                 <Link
-                  key={project._id || project.id}
-                  to={`/projects/${project._id || project.id}`}
+                  key={project.id || project.id}
+                  to={`/projects/${project.projectId || project.projectId}`}
                   className="group relative block"
                 >
                   {/* Subtle glow */}
@@ -311,15 +312,14 @@ const Projects = () => {
         )}
       </div>
 
-{showCreateModal && (
-  <CreateProjectModal
-    onClose={() => setShowCreateModal(false)}
-    onCreated={project => {
-      setProjects(prev => [project, ...prev]);
-    }}
-  />
-)}
-
+      {showCreateModal && (
+        <CreateProjectModal
+          onClose={() => setShowCreateModal(false)}
+          onCreated={project => {
+            setProjects(prev => [project, ...prev]);
+          }}
+        />
+      )}
     </main>
   );
 };
